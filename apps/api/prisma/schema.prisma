@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Статусы заказа. Значения соответствуют enum в legacy-БД.
+enum OrderStatus {
+  CREATED     @map("created")
+  ACCEPTED    @map("accepted")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED   @map("completed")
+  CANCELED    @map("canceled")
+  FINISHED    @map("finished")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @db.VarChar(255)
+  email        String    @unique @db.VarChar(255)
+  /// legacy-колонка называется password; хранится bcrypt-хэш
+  passwordHash String    @map("password") @db.VarChar(255)
+  birthDate    DateTime? @map("birth_date") @db.Date
+  phoneNumber  String?   @map("phone_number") @db.VarChar(15)
+  linkImg      String?   @map("link_img") @db.VarChar(255)
+  isAdmin      Boolean   @default(false) @map("is_admin")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  cars   Car[]
+  orders Order[]
+
+  @@map("users")
+}
+
+model Brand {
+  idBrand   Int     @id @default(autoincrement()) @map("id_brand")
+  brandName String  @unique @map("brand_name") @db.VarChar(255)
+  models    Model[]
+
+  @@map("brand")
+}
+
+model Model {
+  idModel   Int    @id @default(autoincrement()) @map("id_model")
+  modelName String @map("model_name") @db.VarChar(255)
+  brandId   Int    @map("id_brand")
+
+  brand Brand @relation(fields: [brandId], references: [idBrand], onDelete: Cascade)
+  cars  Car[]
+
+  @@unique([brandId, modelName])
+  @@map("model")
+}
+
+model Car {
+  id           Int      @id @default(autoincrement()) @map("id_car")
+  userId       Int      @map("id")
+  modelId      Int      @map("id_model")
+  year         Int
+  mileage      Int      @default(0)
+  vinCode      String?  @map("vin_code") @db.VarChar(20)
+  licensePlate String?  @map("license_plate") @db.VarChar(15)
+  linkImg      String?  @map("link_img") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model  Model   @relation(fields: [modelId], references: [idModel], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@map("cars")
+}
+
+model Category {
+  idCategory   Int       @id @default(autoincrement()) @map("id_category")
+  categoryName String    @map("category_name") @db.VarChar(255)
+  services     Service[]
+
+  @@map("categories")
+}
+
+model Service {
+  idService   Int      @id @default(autoincrement()) @map("id_service")
+  serviceName String   @map("service_name") @db.VarChar(255)
+  /// legacy: NOT NULL, поэтому в DTO обязательное (можно передать пустую строку)
+  description String   @db.VarChar(555)
+  price       Decimal  @db.Decimal(10, 2)
+  categoryId  Int      @map("id_category")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category      Category       @relation(fields: [categoryId], references: [idCategory], onDelete: Cascade)
+  orderServices OrderService[]
+
+  @@index([categoryId])
+  @@map("services")
+}
+
+model Order {
+  idOrder    Int         @id @default(autoincrement()) @map("id_order")
+  userId     Int         @map("id")
+  carId      Int         @map("id_car")
+  orderDate  String      @map("order_date") @db.VarChar(10)
+  /// Время слота в формате HH:MM (строкой — без сюрпризов с часовыми поясами)
+  orderTime  String      @map("order_time") @db.VarChar(5)
+  totalPrice Decimal     @default(0) @map("total_price") @db.Decimal(10, 2)
+  status     OrderStatus @default(CREATED)
+  comment    String?     @db.Text
+  /// ссылка на PDF (акт выполненных работ), legacy-поле
+  doc        String?     @db.VarChar(255)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car      Car            @relation(fields: [carId], references: [id], onDelete: Cascade)
+  services OrderService[]
+
+  @@index([userId])
+  @@index([orderDate, orderTime])
+  @@map("orders")
+}
+
+model OrderService {
+  id        Int     @id @default(autoincrement()) @map("id_order_service")
+  orderId   Int     @map("id_order")
+  serviceId Int     @map("id_service")
+  price     Decimal @default(0) @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [idOrder], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [idService], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_services")
+}

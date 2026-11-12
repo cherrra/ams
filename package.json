@@ -1,0 +1,27 @@
+{
+  "name": "ams",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AMS — мобильное приложение автосервиса (Expo + NestJS)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @ams/shared",
+    "build:api": "npm run build -w @ams/api",
+    "build": "npm run build:shared && npm run build:api",
+    "dev:api": "npm run start:dev -w @ams/api",
+    "dev:mobile": "npm run start -w @ams/mobile",
+    "dev:mobile:web": "npm run web -w @ams/mobile",
+    "typecheck:mobile": "npm run typecheck -w @ams/mobile",
+    "prisma:generate": "npm run prisma:generate -w @ams/api",
+    "prisma:migrate": "npm run prisma:migrate -w @ams/api",
+    "prisma:deploy": "npm run prisma:deploy -w @ams/api",
+    "prisma:seed": "npm run prisma:seed -w @ams/api",
+    "prisma:studio": "npm run prisma:studio -w @ams/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

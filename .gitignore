@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# uploads (local dev)
+uploads/
+!uploads/.gitkeep
+
+# database dumps
+backups/
+
+# logs
+*.log
+npm-debug.log*
+logs/
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# expo
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# testing
+coverage/
