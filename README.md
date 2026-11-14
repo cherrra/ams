@@ -5,7 +5,7 @@
 ams/
   apps/
     api/        # NestJS 12 + Prisma + MySQL
-    mobile/     # Expo SDK 58 + expo-router (этапы 5–7)
+    mobile/     # Expo SDK 58 + expo-router 
   packages/
     shared/     # общие типы, статусы, константы
   docs/         # анализ legacy, схема БД, roadmap
